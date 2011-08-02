@@ -75,7 +75,7 @@ while true; do
     else
         echo "$M_FILE" | while read line
 	do
-	    if is_type "$var" `echo $line | cut -f1 -d:'`
+	    if is_type "$var" `echo $line | cut -f1 -d:`
 	    then
 		open_file "`echo $line | cut -f2 -d:`" "$var";
 		break
