@@ -73,7 +73,7 @@ while true; do
     elif [ "$var" = "" ]; then
 	exit 0
     else
-        echo "$M_FILE" | while read line
+	echo "$M_FILE" | while read line
 	do
 	    if is_type "$var" `echo $line | cut -f1 -d:`
 	    then
@@ -81,7 +81,6 @@ while true; do
 		break
 	    fi
 	done
-
     fi
 
     var=`ls`
