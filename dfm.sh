@@ -56,14 +56,6 @@ make_mime () {
 }
 
 if [ -d "$C_DIR" ]; then
-    if [ ! -e "$M_FILE" ]; then
-	y_n=`echo -e "Yes\nNo" | $DMENU -p "Create $M_FILE. Format: mime program. Exit?"`
-	if [ Yes = "$y_n" ];then
-	    exit 0
-	fi
-	y_n=""
-    fi
-
     if [ -e "$H_FILE" ]; then
 	y_n=`echo -e "Yes\nNo" | $DMENU -p "Open last dir?"`
 	if [ Yes = "$y_n" ]; then
@@ -71,15 +63,9 @@ if [ -d "$C_DIR" ]; then
 	elif [ "" = "$y_n" ]; then
 	    exit 0
 	fi
-	y_n=""
     fi
 elif [ ! -d "$C_DIR" ]; then
     mkdir -p "$C_DIR"
-    y_n=`echo -e "Yes\nNo" | $DMENU -p "Create $M_FILE. Format: mime program. Exit?"`
-    if [ Yes = "$y_n" ];then
-	exit 0
-    fi
-    y_n=""
 else
     return 0
 fi
