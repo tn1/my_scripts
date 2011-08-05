@@ -16,7 +16,7 @@ is_type () {
 
 cd_dir () {
     cd "$1"
-    echo "`pwd`" > $H_FILE
+    echo "`pwd`" > "$H_FILE"
 }
 
 open_file () {
@@ -33,15 +33,15 @@ run_cmd () {
 }
 
 run_program () {
-    while read line
+    echo "$mime" | (while read line
     do
 	if is_type "$2" `echo $line | cut -f1 -d:`
 	then
 	    open_file "`echo $line | cut -f2 -d:`" "$2"
 	    return 0
 	fi
-    done < $M_FILE
-    return 1
+    done
+    return 1)
 }
 
 make_mime () {
@@ -49,8 +49,11 @@ make_mime () {
 
     if [ "$new_mime" ]; then
 	po=`echo "" | $DMENU -p "Enter program for $new_mime: "`
-	echo "$new_mime :$po" >> $M_FILE
-	return 0
+	if [ "$po" ]; then
+	    echo "$new_mime :$po" >> $M_FILE
+	    mime=`cat $M_FILE`
+	    return 0
+	fi
     fi
     return 1
 }
@@ -64,13 +67,12 @@ if [ -d "$C_DIR" ]; then
 	    exit 0
 	fi
     fi
-elif [ ! -d "$C_DIR" ]; then
-    mkdir -p "$C_DIR"
 else
-    return 0
+    mkdir -p "$C_DIR"
 fi
 
 var=`ls`
+mime=`cat $M_FILE`
 
 while true; do
     if [ "$var" ]; then
@@ -83,7 +85,8 @@ while true; do
 	cd_dir "$var"
     elif run_program "$M_FILE" "$var"
     then
-	return 0
+	var=`ls`
+	continue
     elif [ shell: = "$var"  ]; then
 	run_cmd
     elif [ "`echo $var | awk '{print $1}'`" = "sh:" ]; then
@@ -91,7 +94,7 @@ while true; do
     elif [ x"$var" = x"" ]; then
 	exit 0
     else
-	make_mime "$var" || exit 1
+	make_mime "$var"
     fi
 
     var=`ls`
