@@ -1,13 +1,22 @@
 #!/bin/bash
 
+# example dfm.mime
+#
+# video/* :mplayer
+# text/* :urxvt -e emacs -nw
+# image/vnd.djvu :~/script/apvlv.sh
+# image/* :feh
+# audio/mpeg :mplayer
+#
+
 D_CONF="-fn -xos4-terminus-medium-r-normal--12-120-72-72-c-60-*-* -nb #cccccc -nf #111111 -sb #111111 -sf #cccccc"
 DMENU="dmenu $D_CONF"
-C_DIR="$HOME/.config/dfm/"
-H_FILE="${C_DIR}dfm.last"
-M_FILE="${C_DIR}dfm.mime"
+C_DIR="$HOME/.config/dfm"
+H_FILE="${C_DIR}/dfm.last"
+M_FILE="${C_DIR}/dfm.mime"
 
 is_type () {
-    if file --mime "$1" | cut -f2 -d: | awk '{print $1}' | grep $2 &> /dev/null
+    if file --mime "$1" | cut -f2 -d: | awk '{print $1}' | grep "$2"
     then
 	return 0
     fi
@@ -20,7 +29,7 @@ cd_dir () {
 }
 
 open_file () {
-    eval "${1} \"${2}\"" &> /dev/null
+    eval '$1 "$2"'
 }
 
 run_cmd () {
@@ -33,15 +42,15 @@ run_cmd () {
 }
 
 run_program () {
-    echo "$mime" | (while read line
+    while read line
     do
-	if is_type "$2" `echo $line | cut -f1 -d:`
+	if is_type "$1" `echo $line | cut -f1 -d:`
 	then
-	    open_file "`echo $line | cut -f2 -d:`" "$2"
+	    open_file `echo $line | cut -f2 -d:` "$1"
 	    return 0
 	fi
-    done
-    return 1)
+    done < $M_FILE
+    return 1
 }
 
 make_mime () {
@@ -51,11 +60,23 @@ make_mime () {
 	po=`echo "" | $DMENU -p "Enter program for $new_mime: "`
 	if [ "$po" ]; then
 	    echo "$new_mime :$po" >> $M_FILE
-	    mime=`cat $M_FILE`
 	    return 0
 	fi
     fi
     return 1
+}
+
+run_ext () {
+    ext=`echo "$1" | awk '{print $1}'`
+    param=`echo "$1" | sed s/$ext//g`
+
+    if eval '$C_DIR/$ext $param'
+    then
+	return 0
+    else
+	`echo "Extension not found" | $DMENU -p "$ext"`
+	return 1
+    fi
 }
 
 if [ -d "$C_DIR" ]; then
@@ -72,7 +93,6 @@ else
 fi
 
 var=`ls`
-mime=`cat $M_FILE`
 
 while true; do
     if [ "$var" ]; then
@@ -83,14 +103,16 @@ while true; do
 
     if [ -d "$var" ]; then
 	cd_dir "$var"
-    elif run_program "$M_FILE" "$var"
+    elif run_program "$var"
     then
 	var=`ls`
 	continue
-    elif [ shell: = "$var"  ]; then
+    elif [ x"$var" = x"shell:"  ]; then
 	run_cmd
-    elif [ "`echo $var | awk '{print $1}'`" = "sh:" ]; then
-	eval "`echo \"$var\" | cut -f2 -d:`"
+    elif [ x"`echo $var | awk '{print $1}'`" = x"ext:" ]; then
+	run_ext "`echo "$var" | cut -f2 -d:`"
+    elif [ x"`echo $var | awk '{print $1}'`" = x"sh:" ]; then
+	eval "`echo "$var" | cut -f2 -d:`"
     elif [ x"$var" = x"" ]; then
 	exit 0
     else
