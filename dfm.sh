@@ -29,7 +29,7 @@ cd_dir () {
 }
 
 open_file () {
-    eval '$1 "$2"'
+    eval "$1 \"$2\""
 }
 
 run_cmd () {
